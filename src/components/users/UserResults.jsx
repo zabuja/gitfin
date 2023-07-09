@@ -13,9 +13,6 @@ const UserResults = () => {
 
 
 
-
- 
-
 console.log(users)
   if(!loading){
     return(
