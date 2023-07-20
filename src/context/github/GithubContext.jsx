@@ -9,6 +9,8 @@ const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN
 export const GithubProvider = ({children}) =>{
     const initialState = {
       users: [],
+      user: {},
+      repos:[],
       loading: false
     }
 
@@ -55,6 +57,60 @@ const searchUsers = async (text) => {
   })
 }
 
+// get a single user details
+const getUser = async (login) => {
+
+  setLoading()
+
+ 
+  const response = await fetch(`${GITHUB_URL}users/${login}`, {
+    headers:{
+      Authorization: `Bearer ${GITHUB_TOKEN}`
+    }
+  })
+
+  if(response.status === 404){
+    window.location = '/notfound'
+  }else{
+    
+    // destructuring the data which we get
+    // const data = await response.json()
+    const data = await response.json()
+    
+    dispatch({
+      type: 'GET_USER',
+      payload: data
+    })
+  }
+
+}
+// get user repos
+const getUserRepos = async (login) => {
+
+  setLoading()
+
+  const params = new URLSearchParams({
+    sort: 'created',
+    per_page:10,
+  })
+
+  const response = await fetch(`${GITHUB_URL}users/${login}/repos?${params}`, {
+    headers:{
+      Authorization: `Bearer ${GITHUB_TOKEN}`
+    }
+  })
+
+  // destructuring the data which we get
+  // const data = await response.json()
+  const data = await response.json()
+  
+  dispatch({
+    type: 'GET_REPOS',
+    payload: data
+  })
+}
+
+
 // clear users after search from state
 const clearUsers = () => {
   dispatch({type:'CLEAR_USERS'})
@@ -68,8 +124,12 @@ const clearUsers = () => {
       return <GithubContext.Provider value={{
         users: state.users,
         loading: state.loading,
+        user: state.user,
+        repos: state.repos,
         searchUsers,
-        clearUsers
+        clearUsers,
+        getUser,
+        getUserRepos
         }}>
           {children}
       </GithubContext.Provider>
